@@ -1,7 +1,6 @@
-// Entry point → Home Screen
-import HomePage from './home/page';
+// Entry point → Sign In Screen
+import { redirect } from 'next/navigation';
 
 export default function RootPage() {
-  return <HomePage />;
-
+  redirect('/sign-up-login-screen');
 }

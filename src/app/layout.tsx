@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import '../styles/tailwind.css';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -16,8 +17,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'LovePersona — Discover Your Relationship Archetype',
-  description: 'Take a 3-minute scenario quiz to uncover your Love Persona — your attachment style, communication patterns, and relationship archetype, explained like a story.',
+  title: 'heartmap — Discover Your Relationship Archetype',
+  description: 'Take a 3-minute scenario quiz to uncover your heartmap — your attachment style, communication patterns, and relationship archetype, explained like a story.',
   icons: {
     icon: [
       { url: '/favicon.ico', type: 'image/x-icon' }
@@ -33,8 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={plusJakartaSans.variable}>
       <body className={plusJakartaSans.className}>
-        {children}
-      </body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+
+        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fheartmap9905back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.18" />
+        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>
     </html>
   );
 }
