@@ -1,10 +1,33 @@
-
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '../lib/supabase/client';
 
-const AuthContext = createContext<any>({});
+const FASTAPI_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  created_at?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
+  signOut: () => void;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  token: null,
+  loading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,99 +38,74 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
-  const [session, setSession] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Restore session from localStorage
+    const storedToken = localStorage.getItem('heartmap_token');
+    const storedUser = localStorage.getItem('heartmap_user');
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('heartmap_token');
+        localStorage.removeItem('heartmap_user');
+      }
+    }
+    setLoading(false);
   }, []);
 
-  // Email/Password Sign Up
-  const signUp = async (email: string, password: string, metadata = {}) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: metadata?.fullName || '',
-          avatar_url: metadata?.avatarUrl || ''
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-    if (error) throw error;
-    return data;
-  };
-
-  // Email/Password Sign In
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+    const res = await fetch(`${FASTAPI_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
-    if (error) throw error;
-    return data;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Invalid credentials');
+    }
+    const data = await res.json();
+    const accessToken: string = data.access_token;
+    const userData: User = data.user;
+    localStorage.setItem('heartmap_token', accessToken);
+    localStorage.setItem('heartmap_user', JSON.stringify(userData));
+    setToken(accessToken);
+    setUser(userData);
   };
 
-  // Sign Out
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+  const signUp = async (email: string, password: string, name?: string) => {
+    const res = await fetch(`${FASTAPI_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Registration failed');
+    }
+    const data = await res.json();
+    const accessToken: string = data.access_token;
+    const userData: User = data.user;
+    localStorage.setItem('heartmap_token', accessToken);
+    localStorage.setItem('heartmap_user', JSON.stringify(userData));
+    setToken(accessToken);
+    setUser(userData);
   };
 
-  // Get Current User
-  const getCurrentUser = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
+  const signOut = () => {
+    localStorage.removeItem('heartmap_token');
+    localStorage.removeItem('heartmap_user');
+    setToken(null);
+    setUser(null);
   };
 
-  // Check if Email is Verified
-  const isEmailVerified = () => {
-    return user?.email_confirmed_at !== null;
-  };
-
-  // Get User Profile from Database
-  const getUserProfile = async () => {
-    if (!user) return null;
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    if (error) throw error;
-    return data;
-  };
-
-  const value = {
-    user,
-    session,
-    loading,
-    signUp,
-    signIn,
-    signOut,
-    getCurrentUser,
-    isEmailVerified,
-    getUserProfile
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, loading, signIn, signUp, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
