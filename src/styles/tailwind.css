@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0D0F1A;
+  --foreground: #F0EEF8;
+  --primary: #E8547A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A1D2E;
+  --secondary-foreground: #C9C5E0;
+  --accent: #A78BFA;
+  --accent-foreground: #FFFFFF;
+  --muted: #252840;
+  --muted-foreground: #8B88A8;
+  --card: #141626;
+  --card-foreground: #F0EEF8;
+  --border: #2A2D45;
+  --input: #1E2135;
+  --ring: #E8547A;
+  --radius: 16px;
+  --font-sans: var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-gradient-rose {
+    background: linear-gradient(135deg, #E8547A, #F07D96);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-violet {
+    background: linear-gradient(135deg, #A78BFA, #C4B5FD);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-aurora {
+    background: linear-gradient(135deg, #E8547A 0%, #A78BFA 50%, #60A5FA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-card {
+    background: linear-gradient(145deg, #141626, #1A1D2E);
+  }
+
+  .bg-gradient-hero {
+    background: linear-gradient(160deg, #0D0F1A 0%, #1A0E2E 50%, #0D1525 100%);
+  }
+
+  .glow-rose {
+    box-shadow: 0 0 24px rgba(232, 84, 122, 0.25);
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 24px rgba(167, 139, 250, 0.25);
+  }
+
+  .card-border-glow {
+    border: 1px solid rgba(232, 84, 122, 0.2);
+    box-shadow: 0 4px 32px rgba(232, 84, 122, 0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .card-border-violet {
+    border: 1px solid rgba(167, 139, 250, 0.2);
+    box-shadow: 0 4px 32px rgba(167, 139, 250, 0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .blur-premium {
+    filter: blur(8px);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .slide-in-up {
+    animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .scale-in {
+    animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(232, 84, 122, 0.2); }
+  50% { box-shadow: 0 0 32px rgba(232, 84, 122, 0.45); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.float-anim {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
