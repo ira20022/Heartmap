@@ -49,6 +49,20 @@ export default function SignInClient() {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await signIn('demo@heartmap.app', 'demo1234');
+      setSuccessMsg('Welcome, Demo User! ✨');
+      setTimeout(() => router.push('/home'), 600);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-hero flex flex-col">
       {/* Top Nav */}
@@ -206,18 +220,34 @@ export default function SignInClient() {
                   </>
                 )}
               </button>
-            </form>
 
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+              <div className="relative flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               <button
                 type="button"
-                onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }}
-                className="text-primary font-semibold hover:underline"
+                onClick={handleDemoLogin}
+                disabled={isLoading}
+                className="w-full py-3 rounded-xl border border-border bg-muted/40 hover:bg-muted/70 text-foreground font-medium text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {mode === 'login' ? 'Sign up free' : 'Sign in'}
+                <Sparkles className="w-4 h-4 text-primary" />
+                Continue as Demo User
               </button>
-            </p>
+
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                <button
+                  type="button"
+                  onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null); }}
+                  className="text-primary font-semibold hover:underline"
+                >
+                  {mode === 'login' ? 'Sign up free' : 'Sign in'}
+                </button>
+              </p>
+            </form>
           </div>
         </div>
       </div>
