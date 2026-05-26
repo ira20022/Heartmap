@@ -1,0 +1,461 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.quiz-wrap{padding:1.5rem 0;max-width:680px}
+.question-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;margin-bottom:1rem}
+.q-meta{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.q-num{font-size:12px;color:var(--color-text-tertiary);font-weight:500}
+.q-signal{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.q-scenario{font-size:15px;font-weight:500;color:var(--color-text-primary);line-height:1.5;margin-bottom:0.5rem}
+.q-context{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.5}
+.options{display:grid;gap:8px}
+.option-btn{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:12px 14px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;transition:all 0.15s;width:100%}
+.option-btn:hover{background:var(--color-background-primary);border-color:var(--color-border-secondary)}
+.option-btn.selected{background:var(--color-background-primary);border-color:var(--color-border-primary);border-width:1.5px}
+.opt-text{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.opt-sub{font-size:12px;color:var(--color-text-secondary);margin-top:3px;line-height:1.4}
+.progress-bar{height:3px;background:var(--color-background-secondary);border-radius:2px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--color-border-primary);border-radius:2px;transition:width 0.3s}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;gap:12px}
+.nav-btn{padding:8px 20px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);font-size:14px;cursor:pointer;transition:all 0.15s}
+.nav-btn:hover{background:var(--color-background-secondary)}
+.nav-btn:disabled{opacity:0.3;cursor:default}
+.nav-btn.primary{background:var(--color-background-primary);border-color:var(--color-border-primary)}
+.counter{font-size:13px;color:var(--color-text-tertiary)}
+.result-wrap{padding:1.5rem 0}
+.result-hero{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:2rem;margin-bottom:1rem;text-align:center}
+.result-emoji{font-size:48px;margin-bottom:1rem;display:block}
+.result-name{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:0.5rem}
+.result-tagline{font-size:14px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.5}
+.result-desc{font-size:14px;color:var(--color-text-primary);line-height:1.7;text-align:left}
+.style-badge{display:inline-block;font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);margin-bottom:1.25rem}
+.scores-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem}
+.score-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.score-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px}
+.score-bar-wrap{height:4px;background:var(--color-background-primary);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.score-bar{height:100%;border-radius:2px;transition:width 0.5s}
+.score-val{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.secondary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.sec-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;text-align:center}
+.sec-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.sec-val{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.restart-btn{padding:10px 28px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);font-size:14px;cursor:pointer;margin-top:1rem}
+.restart-btn:hover{background:var(--color-background-secondary)}
+.share-btn{padding:10px 28px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);font-size:14px;cursor:pointer;margin-top:1rem;margin-left:8px}
+.share-btn:hover{background:var(--color-background-secondary)}
+</style>
+
+<div class="quiz-wrap" id="app">
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div id="question-area"></div>
+  <div class="nav" id="nav-area">
+    <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" disabled>← Back</button>
+    <span class="counter" id="counter">1 / 30</span>
+    <button class="nav-btn primary" id="btn-next" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<script>
+const SCORE_MAP = {
+  'q-001': {
+    'q001-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:1,intensity:-1}},
+    'q001-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q001-c': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q001-d': {primary:'avoidant',weight:3,sec:{expressiveness:-1,independence:2,intensity:-1}}
+  },
+  'q-002': {
+    'q002-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:0,intensity:0}},
+    'q002-b': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:-1}},
+    'q002-c': {primary:'secure',weight:2,sec:{expressiveness:2,independence:0,intensity:1}},
+    'q002-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:1}}
+  },
+  'q-003': {
+    'q003-a': {primary:'secure',weight:3,sec:{expressiveness:2,independence:0,intensity:2}},
+    'q003-b': {primary:'secure',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q003-c': {primary:'disorganized',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q003-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:-1}}
+  },
+  'q-004': {
+    'q004-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:1,intensity:0}},
+    'q004-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-1,intensity:1}},
+    'q004-c': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:2,intensity:0}},
+    'q004-d': {primary:'secure',weight:2,sec:{expressiveness:1,independence:2,intensity:0}}
+  },
+  'q-005': {
+    'q005-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q005-b': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-1,intensity:2}},
+    'q005-c': {primary:'secure',weight:2,sec:{expressiveness:2,independence:0,intensity:0}},
+    'q005-d': {primary:'avoidant',weight:3,sec:{expressiveness:-1,independence:2,intensity:0}}
+  },
+  'q-006': {
+    'q006-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q006-b': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q006-c': {primary:'anxious',weight:2,sec:{expressiveness:0,independence:0,intensity:1}},
+    'q006-d': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:1}}
+  },
+  'q-007': {
+    'q007-a': {primary:'secure',weight:3,sec:{expressiveness:3,independence:-1,intensity:2}},
+    'q007-b': {primary:'avoidant',weight:2,sec:{expressiveness:-2,independence:2,intensity:-1}},
+    'q007-c': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:-1}},
+    'q007-d': {primary:'disorganized',weight:3,sec:{expressiveness:-1,independence:1,intensity:0}}
+  },
+  'q-008': {
+    'q008-a': {primary:'secure',weight:2,sec:{expressiveness:3,independence:0,intensity:1}},
+    'q008-b': {primary:'secure',weight:2,sec:{expressiveness:0,independence:0,intensity:0}},
+    'q008-c': {primary:'secure',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q008-d': {primary:'secure',weight:2,sec:{expressiveness:1,independence:0,intensity:0}}
+  },
+  'q-009': {
+    'q009-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q009-b': {primary:'secure',weight:2,sec:{expressiveness:1,independence:1,intensity:0}},
+    'q009-c': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:1}},
+    'q009-d': {primary:'avoidant',weight:3,sec:{expressiveness:-1,independence:2,intensity:0}}
+  },
+  'q-010': {
+    'q010-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q010-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q010-c': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q010-d': {primary:'secure',weight:2,sec:{expressiveness:2,independence:0,intensity:1}}
+  },
+  'q-011': {
+    'q011-a': {primary:'secure',weight:3,sec:{expressiveness:2,independence:0,intensity:1}},
+    'q011-b': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q011-c': {primary:'secure',weight:2,sec:{expressiveness:1,independence:1,intensity:0}},
+    'q011-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:-1}}
+  },
+  'q-012': {
+    'q012-a': {primary:'secure',weight:2,sec:{expressiveness:0,independence:3,intensity:1}},
+    'q012-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-2,intensity:1}},
+    'q012-c': {primary:'secure',weight:3,sec:{expressiveness:2,independence:1,intensity:0}},
+    'q012-d': {primary:'disorganized',weight:3,sec:{expressiveness:-1,independence:0,intensity:2}}
+  },
+  'q-013': {
+    'q013-a': {primary:'secure',weight:4,sec:{expressiveness:3,independence:0,intensity:1}},
+    'q013-b': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:0}},
+    'q013-c': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q013-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:0}}
+  },
+  'q-014': {
+    'q014-a': {primary:'secure',weight:3,sec:{expressiveness:2,independence:0,intensity:0}},
+    'q014-b': {primary:'secure',weight:2,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q014-c': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-1,intensity:2}},
+    'q014-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:0}}
+  },
+  'q-015': {
+    'q015-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q015-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q015-c': {primary:'avoidant',weight:3,sec:{expressiveness:-1,independence:2,intensity:-1}},
+    'q015-d': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-1,intensity:3}}
+  },
+  'q-016': {
+    'q016-a': {primary:'secure',weight:3,sec:{expressiveness:2,independence:1,intensity:0}},
+    'q016-b': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:-1,intensity:0}},
+    'q016-c': {primary:'anxious',weight:3,sec:{expressiveness:-2,independence:0,intensity:1}},
+    'q016-d': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:2,intensity:0}}
+  },
+  'q-017': {
+    'q017-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:0,intensity:-1}},
+    'q017-b': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q017-c': {primary:'secure',weight:3,sec:{expressiveness:2,independence:0,intensity:0}},
+    'q017-d': {primary:'avoidant',weight:2,sec:{expressiveness:-2,independence:1,intensity:1}}
+  },
+  'q-018': {
+    'q018-a': {primary:'secure',weight:4,sec:{expressiveness:3,independence:1,intensity:2}},
+    'q018-b': {primary:'anxious',weight:2,sec:{expressiveness:0,independence:0,intensity:1}},
+    'q018-c': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q018-d': {primary:'avoidant',weight:4,sec:{expressiveness:-3,independence:1,intensity:-1}}
+  },
+  'q-019': {
+    'q019-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:2,intensity:-1}},
+    'q019-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-1,intensity:1}},
+    'q019-c': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-2,intensity:3}},
+    'q019-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:0}}
+  },
+  'q-020': {
+    'q020-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:0,intensity:-1}},
+    'q020-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-1,intensity:2}},
+    'q020-c': {primary:'disorganized',weight:3,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q020-d': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}}
+  },
+  'q-021': {
+    'q021-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:1,intensity:-1}},
+    'q021-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-1,intensity:1}},
+    'q021-c': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-1,intensity:2}},
+    'q021-d': {primary:'anxious',weight:2,sec:{expressiveness:-2,independence:0,intensity:1}}
+  },
+  'q-022': {
+    'q022-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:0,intensity:2}},
+    'q022-b': {primary:'anxious',weight:2,sec:{expressiveness:0,independence:0,intensity:1}},
+    'q022-c': {primary:'secure',weight:2,sec:{expressiveness:1,independence:1,intensity:-1}},
+    'q022-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:-1}}
+  },
+  'q-023': {
+    'q023-a': {primary:'secure',weight:3,sec:{expressiveness:3,independence:0,intensity:1}},
+    'q023-b': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q023-c': {primary:'anxious',weight:2,sec:{expressiveness:0,independence:0,intensity:2}},
+    'q023-d': {primary:'avoidant',weight:3,sec:{expressiveness:-3,independence:1,intensity:-1}}
+  },
+  'q-024': {
+    'q024-a': {primary:'secure',weight:4,sec:{expressiveness:3,independence:0,intensity:1}},
+    'q024-b': {primary:'avoidant',weight:2,sec:{expressiveness:-1,independence:1,intensity:0}},
+    'q024-c': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:-1}},
+    'q024-d': {primary:'avoidant',weight:4,sec:{expressiveness:-3,independence:1,intensity:-1}}
+  },
+  'q-025': {
+    'q025-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:3,intensity:-1}},
+    'q025-b': {primary:'secure',weight:3,sec:{expressiveness:1,independence:1,intensity:0}},
+    'q025-c': {primary:'anxious',weight:3,sec:{expressiveness:1,independence:-2,intensity:2}},
+    'q025-d': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:-1,intensity:3}}
+  },
+  'q-026': {
+    'q026-a': {primary:'secure',weight:3,sec:{expressiveness:1,independence:0,intensity:-1}},
+    'q026-b': {primary:'secure',weight:2,sec:{expressiveness:1,independence:0,intensity:0}},
+    'q026-c': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:1}},
+    'q026-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:1,intensity:0}}
+  },
+  'q-027': {
+    'q027-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:0,intensity:-2}},
+    'q027-b': {primary:'secure',weight:2,sec:{expressiveness:1,independence:0,intensity:0}},
+    'q027-c': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q027-d': {primary:'disorganized',weight:3,sec:{expressiveness:-1,independence:2,intensity:2}}
+  },
+  'q-028': {
+    'q028-a': {primary:'secure',weight:3,sec:{expressiveness:0,independence:2,intensity:-1}},
+    'q028-b': {primary:'anxious',weight:2,sec:{expressiveness:0,independence:0,intensity:1}},
+    'q028-c': {primary:'anxious',weight:2,sec:{expressiveness:-1,independence:-1,intensity:2}},
+    'q028-d': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:0}}
+  },
+  'q-029': {
+    'q029-a': {primary:'secure',weight:3,sec:{expressiveness:2,independence:1,intensity:0}},
+    'q029-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:-2,intensity:1}},
+    'q029-c': {primary:'avoidant',weight:3,sec:{expressiveness:-2,independence:2,intensity:-1}},
+    'q029-d': {primary:'disorganized',weight:3,sec:{expressiveness:-1,independence:0,intensity:2}}
+  },
+  'q-030': {
+    'q030-a': {primary:'secure',weight:4,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q030-b': {primary:'anxious',weight:2,sec:{expressiveness:1,independence:0,intensity:1}},
+    'q030-c': {primary:'anxious',weight:3,sec:{expressiveness:-1,independence:0,intensity:2}},
+    'q030-d': {primary:'disorganized',weight:4,sec:{expressiveness:-2,independence:1,intensity:2}}
+  }
+};
+
+const PERSONAS = [
+  {id:'persona-steady-anchor',name:'The Steady Anchor',emoji:'⚓',attachmentStyle:'Secure',archetype:'Secure-Leaning',tagline:"You love deeply, steadily, and without drama.",description:"You bring calmness into relationships instead of chaos. You communicate directly, handle conflict maturely, and rarely play emotional games. People often feel emotionally safe around you because your love feels stable rather than unpredictable.",profile:{expressiveness:'mid',independence:'mid',intensity:'low'}},
+  {id:'persona-passionate-heart',name:'The Passionate Heart',emoji:'🔥',attachmentStyle:'Anxious',archetype:'Anxious-Romantic',tagline:"You love with everything — and feel everything twice.",description:"You experience love intensely and emotionally. Small shifts in tone, attention, or affection can deeply affect you because emotional connection matters enormously in your world.",profile:{expressiveness:'high',independence:'low',intensity:'high'}},
+  {id:'persona-quiet-guardian',name:'The Quiet Guardian',emoji:'🛡️',attachmentStyle:'Avoidant',archetype:'Protective-Avoidant',tagline:"You protect by keeping distance — even from those you love.",description:"You value emotional control and independence deeply. Vulnerability does not come naturally to you, and when emotions become too intense, your instinct is often to withdraw internally.",profile:{expressiveness:'low',independence:'high',intensity:'low'}},
+  {id:'persona-free-spirit',name:'The Free Spirit',emoji:'🌊',attachmentStyle:'Secure',archetype:'Autonomous-Secure',tagline:"You love freely, without needing to possess or be possessed.",description:"You believe love works best when both people remain fully themselves. You value emotional closeness while still maintaining independence and individuality.",profile:{expressiveness:'mid',independence:'high',intensity:'mid'}},
+  {id:'persona-deep-thinker',name:'The Deep Thinker',emoji:'🌙',attachmentStyle:'Disorganized',archetype:'Analytical-Complex',tagline:"You analyse love more than you let yourself feel it.",description:"Your emotional world is rich, layered, and complicated. You often intellectualize feelings to make sense of them, especially when vulnerability feels overwhelming.",profile:{expressiveness:'low',independence:'mid',intensity:'mid'}},
+  {id:'persona-nurturer',name:'The Nurturer',emoji:'🌸',attachmentStyle:'Anxious',archetype:'Caregiver-Anxious',tagline:"You give endlessly — and quietly fear it's never enough.",description:"You express love through care, support, and emotional attentiveness. You naturally prioritize the people you love, sometimes even at the expense of your own needs.",profile:{expressiveness:'high',independence:'low',intensity:'mid'}},
+  {id:'persona-lone-wolf',name:'The Lone Wolf',emoji:'🐺',attachmentStyle:'Avoidant',archetype:'Independent-Avoidant',tagline:"You crave connection but retreat when it gets real.",description:"You value emotional independence and often rely heavily on yourself. While you desire intimacy, deep emotional closeness can trigger discomfort or pressure.",profile:{expressiveness:'low',independence:'high',intensity:'mid'}},
+  {id:'persona-overthinker',name:'The Overthinker',emoji:'🌀',attachmentStyle:'Anxious',archetype:'Anxious-Analytical',tagline:"Your mind runs ahead of your heart — always preparing for loss.",description:"You notice every detail in relationships — the pauses, tone shifts, unread messages, and emotional changes others might miss.",profile:{expressiveness:'low',independence:'low',intensity:'high'}},
+  {id:'persona-golden-retriever',name:'The Golden Retriever',emoji:'☀️',attachmentStyle:'Secure',archetype:'Warm-Secure',tagline:"You love openly, loyally, and with contagious warmth.",description:"You bring optimism, affection, and emotional openness into relationships. You enjoy making people feel loved and appreciated.",profile:{expressiveness:'high',independence:'mid',intensity:'mid'}},
+  {id:'persona-storm-chaser',name:'The Storm Chaser',emoji:'⛈️',attachmentStyle:'Disorganized',archetype:'Intensity-Seeking',tagline:"You confuse emotional intensity with emotional certainty.",description:"You are drawn toward emotionally charged relationships because calmness can sometimes feel unfamiliar or emotionally distant.",profile:{expressiveness:'mid',independence:'mid',intensity:'high'}},
+  {id:'persona-soft-romantic',name:'The Soft Romantic',emoji:'💌',attachmentStyle:'Secure',archetype:'Hopeless Romantic',tagline:"You believe love should feel tender, intentional, and sincere.",description:"You value emotional intimacy, thoughtful gestures, and meaningful connection. You pay attention to emotional details.",profile:{expressiveness:'high',independence:'low',intensity:'mid'}},
+  {id:'persona-emotional-firefighter',name:'The Emotional Firefighter',emoji:'🚨',attachmentStyle:'Anxious',archetype:'Conflict-Reactive',tagline:"You rush to fix emotional distance before it grows.",description:"Conflict and emotional disconnection feel extremely uncomfortable to you. When tension appears, you instinctively try to repair or reconnect.",profile:{expressiveness:'high',independence:'low',intensity:'high'}},
+  {id:'persona-ice-kingdom',name:'The Ice Kingdom',emoji:'❄️',attachmentStyle:'Avoidant',archetype:'Emotionally-Guarded',tagline:"You feel deeply — but reveal very little.",description:"You tend to keep your emotions private and carefully controlled. Vulnerability feels risky because emotional dependence can feel like losing control.",profile:{expressiveness:'low',independence:'high',intensity:'low'}},
+  {id:'persona-devoted-builder',name:'The Devoted Builder',emoji:'🏡',attachmentStyle:'Secure',archetype:'Long-Term Partner',tagline:"You value stability, loyalty, and building something real.",description:"You approach love with patience and intention. You are less interested in temporary excitement and more interested in emotional trust and long-term consistency.",profile:{expressiveness:'mid',independence:'low',intensity:'low'}},
+  {id:'persona-mirror-heart',name:'The Mirror Heart',emoji:'🪞',attachmentStyle:'Anxious',archetype:'Emotionally-Adaptive',tagline:"You absorb the emotional energy of the people you love.",description:"Your emotional state is highly connected to the emotional tone of your relationships. When people feel warm and connected, you thrive.",profile:{expressiveness:'mid',independence:'low',intensity:'high'}},
+  {id:'persona-shadow-walker',name:'The Shadow Walker',emoji:'🌑',attachmentStyle:'Disorganized',archetype:'Fearful-Avoidant',tagline:"You want intimacy deeply — but fear what comes with it.",description:"You often feel torn between craving emotional closeness and fearing vulnerability. Relationships can trigger both intense desire for connection and strong impulses to retreat.",profile:{expressiveness:'low',independence:'mid',intensity:'high'}},
+  {id:'persona-sunflower-soul',name:'The Sunflower Soul',emoji:'🌻',attachmentStyle:'Secure',archetype:'Emotionally-Bright',tagline:"Your warmth makes people feel emotionally safe.",description:"You naturally create comfort, positivity, and emotional openness around you. You enjoy supporting the people you love and rarely approach relationships with manipulation.",profile:{expressiveness:'high',independence:'mid',intensity:'low'}},
+  {id:'persona-heart-on-sleeve',name:'The Heart-on-Sleeve',emoji:'❤️',attachmentStyle:'Anxious',archetype:'Emotionally-Transparent',tagline:"You feel deeply and rarely hide it.",description:"You express emotions openly and intensely. While this honesty creates deep intimacy, it can also leave you emotionally vulnerable.",profile:{expressiveness:'high',independence:'low',intensity:'high'}},
+  {id:'persona-detached-drifter',name:'The Detached Drifter',emoji:'🌫️',attachmentStyle:'Avoidant',archetype:'Emotionally-Distant',tagline:"You keep moving emotionally before anyone gets too close.",description:"You struggle with emotional dependency and often maintain emotional distance to protect yourself.",profile:{expressiveness:'low',independence:'high',intensity:'low'}},
+  {id:'persona-midnight-poet',name:'The Midnight Poet',emoji:'🖋️',attachmentStyle:'Disorganized',archetype:'Emotionally-Introspective',tagline:"You romanticize emotions you still struggle to trust.",description:"You experience love in a highly emotional and introspective way. You are deeply reflective and emotionally aware, but your fear of emotional pain creates hesitation.",profile:{expressiveness:'mid',independence:'low',intensity:'high'}},
+  {id:'persona-safe-harbor',name:'The Safe Harbor',emoji:'🕯️',attachmentStyle:'Secure',archetype:'Emotionally-Stable',tagline:"People feel calmer simply by being around you.",description:"You provide emotional steadiness during conflict, uncertainty, and vulnerability. You tend to communicate clearly and remain emotionally reliable.",profile:{expressiveness:'mid',independence:'mid',intensity:'low'}},
+  {id:'persona-burning-comet',name:'The Burning Comet',emoji:'☄️',attachmentStyle:'Anxious',archetype:'Intensity-Loving',tagline:"You fall hard, fast, and emotionally all at once.",description:"You become emotionally invested quickly and deeply. Relationships often feel emotionally consuming to you.",profile:{expressiveness:'high',independence:'low',intensity:'high'}},
+  {id:'persona-castle-builder',name:'The Castle Builder',emoji:'🏰',attachmentStyle:'Avoidant',archetype:'Self-Protective',tagline:"You build strong walls before you build trust.",description:"Trust takes time for you because emotional safety matters deeply. You often rely on self-sufficiency and emotional distance to avoid disappointment.",profile:{expressiveness:'low',independence:'high',intensity:'low'}},
+  {id:'persona-balanced-soul',name:'The Balanced Soul',emoji:'⚖️',attachmentStyle:'Secure',archetype:'Emotionally-Balanced',tagline:"You balance intimacy and independence naturally.",description:"You value both closeness and individuality within relationships. You rarely feel consumed by fear of abandonment or fear of intimacy.",profile:{expressiveness:'mid',independence:'mid',intensity:'mid'}},
+  {id:'persona-fragile-flame',name:'The Fragile Flame',emoji:'🕊️',attachmentStyle:'Disorganized',archetype:'Sensitive-Complex',tagline:"You feel everything deeply — including uncertainty.",description:"You are emotionally sensitive, deeply intuitive, and highly affected by emotional inconsistency. Vulnerability triggers both hope and fear simultaneously.",profile:{expressiveness:'mid',independence:'low',intensity:'high'}},
+  {id:'persona-silent-tide',name:'The Silent Tide',emoji:'🌌',attachmentStyle:'Avoidant',archetype:'Quietly-Independent',tagline:"You love quietly, privately, and on your own terms.",description:"You are capable of deep love but often express it subtly rather than openly. Emotional independence matters deeply to you.",profile:{expressiveness:'low',independence:'high',intensity:'mid'}},
+  {id:'persona-evergreen-heart',name:'The Evergreen Heart',emoji:'🌿',attachmentStyle:'Secure',archetype:'Reliable-Lover',tagline:"Your love grows steadily instead of burning out quickly.",description:"You value emotional consistency, patience, and sustainable connection over emotional extremes. Your relationships often deepen gradually over time.",profile:{expressiveness:'mid',independence:'low',intensity:'low'}},
+  {id:'persona-chaotic-dreamer',name:'The Chaotic Dreamer',emoji:'🎭',attachmentStyle:'Disorganized',archetype:'Emotionally-Unpredictable',tagline:"You crave certainty while fearing emotional dependence.",description:"Your emotional needs can feel internally conflicting. Part of you wants complete closeness while another part fears vulnerability and emotional exposure.",profile:{expressiveness:'mid',independence:'mid',intensity:'high'}}
+];
+
+const QUESTIONS = [
+  {id:'q-001',number:1,signal:'Attachment Style',scenario:"You've been texting someone you like for three days straight. Then — silence. No reply for 18 hours.",context:"Your phone sits there. The last message was yours.",options:[{id:'q001-a',text:'Give them space, no big deal',subtext:"They're probably just busy. I'll hear from them."},{id:'q001-b',text:'Send a casual follow-up text',subtext:"Just checking in — keeping it light but I need to know."},{id:'q001-c',text:'Replay every conversation for clues',subtext:"Something I said must have changed things. What was it?"},{id:'q001-d',text:'Pull back and protect yourself',subtext:"If they wanted to reply, they would. I'm not chasing."}]},
+  {id:'q-002',number:2,signal:'Conflict Behavior',scenario:"Your partner says something that genuinely hurts you — in front of other people at a dinner.",context:"Everyone at the table heard. They don't seem to realize.",options:[{id:'q002-a',text:'Stay quiet, address it privately later',subtext:"Not the place. I'll bring it up when we're alone."},{id:'q002-b',text:'Laugh it off but feel it internally',subtext:"Keep the peace now. Carry it quietly."},{id:'q002-c',text:'Gently call it out in the moment',subtext:"That actually hurt — and they should know right now."},{id:'q002-d',text:'Go cold for the rest of the evening',subtext:"They'll figure out something's wrong. I shouldn't have to explain."}]},
+  {id:'q-003',number:3,signal:'Emotional Openness',scenario:"Three months in and things feel real. Your partner says, \"I think I'm falling for you.\"",context:"You feel it too. But saying it out loud feels enormous.",options:[{id:'q003-a',text:'Say it back immediately and mean it',subtext:"I've been waiting to say this. Of course I feel it too."},{id:'q003-b',text:'Smile and hold their hand instead',subtext:"I can't find the words but I want them to feel my answer."},{id:'q003-c',text:'Ask what they mean by that',subtext:"I want to make sure we're talking about the same thing."},{id:'q003-d',text:'Change the subject with a joke',subtext:"I'm not ready for this conversation yet."}]},
+  {id:'q-004',number:4,signal:'Independence vs Closeness',scenario:"Your partner wants to spend every weekend together. You value your alone time deeply.",context:"They're not demanding — they just genuinely want to be with you.",options:[{id:'q004-a',text:'Compromise — some weekends together, some solo',subtext:"Balance is everything. We can make this work."},{id:'q004-b',text:'Embrace it — I love being around them',subtext:"My alone time can wait. This is what I want."},{id:'q004-c',text:'Feel quietly suffocated but say nothing',subtext:"I don't want to hurt them but I need breathing room."},{id:'q004-d',text:'Set clear calendar boundaries upfront',subtext:"I need to be honest about what works for me."}]},
+  {id:'q-005',number:5,signal:'Reassurance Seeking',scenario:"You notice your partner has been less affectionate than usual for the past week.",context:"Nothing dramatic happened. They seem fine — just quieter.",options:[{id:'q005-a',text:"Assume they're just going through something",subtext:"It's not about me. I'll be here when they're ready."},{id:'q005-b',text:'Wonder if you did something wrong',subtext:"The silence feels pointed. I keep replaying things."},{id:'q005-c',text:"Ask directly if everything's okay between us",subtext:"I'd rather know than spiral. Let's just talk."},{id:'q005-d',text:'Match their energy and pull back too',subtext:"If they're distant, I'll be distant. Self-protection."}]},
+  {id:'q-006',number:6,signal:'Trust Patterns',scenario:"Your partner mentions their ex casually in a story — with warmth, not bitterness.",context:"The relationship ended years ago. They seem completely over it.",options:[{id:'q006-a',text:'Feel fine — past is past',subtext:"People have histories. It doesn't threaten what we have."},{id:'q006-b',text:'Notice it but not bring it up',subtext:"I'm fine. Mostly. I'll just quietly file that away."},{id:'q006-c',text:'Casually ask more questions about them',subtext:"Just curious. Totally casual. I just want to understand."},{id:'q006-d',text:"Feel irritated but tell yourself it's irrational",subtext:"I know I'm being silly. But I can't help how I feel."}]},
+  {id:'q-007',number:7,signal:'Vulnerability Threshold',scenario:"Things ended with someone you cared about deeply. You're talking to a close friend about it.",context:"They're listening. You could say anything right now.",options:[{id:'q007-a',text:'Let it all out — cry, vent, the whole thing',subtext:"I need to feel this fully before I can move forward."},{id:'q007-b',text:'Give the facts, keep the feelings private',subtext:"Here's what happened. I'm dealing with the rest alone."},{id:'q007-c',text:"Downplay it — \"I'm fine, honestly\"",subtext:"I don't want to make it a big thing. I'll be okay."},{id:'q007-d',text:"Analyze what went wrong, not how you feel",subtext:"If I understand the pattern, I can avoid it next time."}]},
+  {id:'q-008',number:8,signal:'Love Language Expression',scenario:"You want someone you care about to know how much they mean to you.",context:"No special occasion. Just a regular Tuesday.",options:[{id:'q008-a',text:'Write them a long, heartfelt message',subtext:"I want them to have something they can read again."},{id:'q008-b',text:"Make their favourite meal without being asked",subtext:"I show love through what I do, not what I say."},{id:'q008-c',text:'Give them a long, unexpected hug',subtext:"Words feel insufficient. Being close says it better."},{id:'q008-d',text:'Find something small that reminded you of them',subtext:"I saw it and thought of you — that's the whole message."}]},
+  {id:'q-009',number:9,signal:'Commitment Readiness',scenario:'You\'ve been seeing someone for two months. They bring up "where is this going?"',context:"You like them. But the question catches you off guard.",options:[{id:'q009-a',text:"Feel ready — you've been thinking the same thing",subtext:"I've been waiting for this conversation. Let's define it."},{id:'q009-b',text:"Appreciate the honesty and share where you're at",subtext:"I like you. I'm not ready to label it yet, but I'm here."},{id:'q009-c',text:'Deflect with humour to buy more time',subtext:"I'm not ready for this but I don't want to lose them either."},{id:'q009-d',text:'Feel the urge to slow things down immediately',subtext:"Pressure makes me want to pull back, even if I care."}]},
+  {id:'q-010',number:10,signal:'Jealousy Response',scenario:"Your partner gets noticeably flirted with at a party — and seems to enjoy the attention.",context:"They haven't done anything wrong. But you feel it.",options:[{id:'q010-a',text:'Feel secure — they came with me, they\'re leaving with me',subtext:"A little attention doesn't threaten what we have."},{id:'q010-b',text:'Subtly move closer to signal your presence',subtext:"Not possessive — just reminding everyone we're together."},{id:'q010-c',text:'Go quiet and process it internally all night',subtext:"I won't say anything but I'll be replaying this later."},{id:'q010-d',text:'Bring it up honestly on the way home',subtext:"I felt something. I'd rather say it than stew in it."}]},
+  {id:'q-011',number:11,signal:'Repair Instinct',scenario:"You and your partner had a real argument. It ended without resolution — just silence.",context:"A day has passed. Neither of you has reached out.",options:[{id:'q011-a',text:"Reach out first — pride isn't worth the distance",subtext:"I don't care who was right. I want us to be okay."},{id:'q011-b',text:'Wait for them to come to you',subtext:"I need them to show they care enough to fix this."},{id:'q011-c',text:'Send a message — but keep it measured',subtext:"I'll open the door but I won't walk through it alone."},{id:'q011-d',text:'Stay silent until the tension naturally dissolves',subtext:"Time fixes most things. I'd rather not force it."}]},
+  {id:'q-012',number:12,signal:'Future Orientation',scenario:"A great opportunity comes up — but it would mean moving cities away from your partner.",context:"You've been together eight months. Things are good.",options:[{id:'q012-a',text:'Take it — the right person will make long-distance work',subtext:"My growth matters. Love adapts if it's real."},{id:'q012-b',text:'Turn it down — what we have is worth more',subtext:"Opportunities come again. This connection might not."},{id:'q012-c',text:'Have a serious conversation before deciding anything',subtext:"This affects both of us. We decide together."},{id:'q012-d',text:"Feel paralysed — you can't imagine either choice",subtext:"I want everything and I'm terrified of losing something."}]},
+  {id:'q-013',number:13,signal:'Emotional Availability',scenario:"Someone you're dating asks you what scares you most in relationships.",context:"The question feels unexpectedly personal.",options:[{id:'q013-a',text:'Answer honestly and openly',subtext:"If we're building something real, they should know me fully."},{id:'q013-b',text:'Keep the answer light and surface-level',subtext:"I'm not ready to expose the deeper stuff yet."},{id:'q013-c',text:'Turn the question back on them first',subtext:"I'd rather understand them before revealing myself."},{id:'q013-d',text:'Joke your way around the conversation',subtext:"Humour feels safer than vulnerability right now."}]},
+  {id:'q-014',number:14,signal:'Communication Style',scenario:"Your partner seems upset but insists that everything is fine.",context:"You can clearly feel the tension between you.",options:[{id:'q014-a',text:'Gently keep checking in',subtext:"I don't want things to build up silently between us."},{id:'q014-b',text:'Respect their space and wait',subtext:"They'll talk when they're ready."},{id:'q014-c',text:'Feel anxious and overthink the silence',subtext:"I keep wondering what I did wrong."},{id:'q014-d',text:'Get frustrated and emotionally shut down too',subtext:"If they won't communicate, I stop trying."}]},
+  {id:'q-015',number:15,signal:'Security in Love',scenario:"Your partner is extremely busy for two weeks and can barely text.",context:"They warned you ahead of time and still try when they can.",options:[{id:'q015-a',text:'Feel secure and supportive',subtext:"Life gets busy sometimes. It doesn't change how they feel."},{id:'q015-b',text:'Need occasional reassurance to stay calm',subtext:"A little effort goes a long way for me."},{id:'q015-c',text:'Start emotionally distancing yourself',subtext:"I prepare for disappointment before it hits me."},{id:'q015-d',text:'Become hyper-aware of every small interaction',subtext:"I start searching for signs that something changed."}]},
+  {id:'q-016',number:16,signal:'Boundaries',scenario:"A partner keeps making plans for you both without asking first.",context:"They mean well — but it's starting to bother you.",options:[{id:'q016-a',text:'Bring it up calmly and directly',subtext:"Small frustrations grow if they stay unspoken."},{id:'q016-b',text:'Go along with it to avoid tension',subtext:"It's easier than disappointing them."},{id:'q016-c',text:'Feel resentful but hope they notice',subtext:"I wish they'd naturally realize it's too much."},{id:'q016-d',text:'Start creating distance and saying no more often',subtext:"I need to reclaim some space for myself."}]},
+  {id:'q-017',number:17,signal:'Romantic Idealism',scenario:"You realize your partner has habits that genuinely annoy you.",context:"Nothing major — just the reality of getting closer to someone.",options:[{id:'q017-a',text:'Accept it as part of loving a real person',subtext:"No relationship is perfect all the time."},{id:'q017-b',text:'Fixate on whether it means you\'re incompatible',subtext:"What if this is a sign of bigger issues?"},{id:'q017-c',text:'Bring it up playfully and honestly',subtext:"Small conversations keep resentment from building."},{id:'q017-d',text:'Ignore it outwardly but stew internally',subtext:"I don't want conflict, but it keeps bothering me."}]},
+  {id:'q-018',number:18,signal:'Fear of Rejection',scenario:"You're thinking about confessing feelings to someone you've grown close to.",context:"There's a real chance they might not feel the same.",options:[{id:'q018-a',text:'Tell them anyway — clarity matters more than fear',subtext:"I'd rather know than wonder forever."},{id:'q018-b',text:'Drop subtle hints first',subtext:"I need some sign it's safe before risking it."},{id:'q018-c',text:'Wait until the timing feels perfect',subtext:"Maybe eventually the right moment will appear."},{id:'q018-d',text:'Say nothing and keep the feelings private',subtext:"Rejection would hurt more than silence."}]},
+  {id:'q-019',number:19,signal:'Emotional Dependence',scenario:"You're having a terrible day and your partner is unavailable for most of it.",context:"They warned you beforehand, but emotionally you still feel alone.",options:[{id:'q019-a',text:'Handle it yourself and reconnect later',subtext:"I can support myself even when I miss them."},{id:'q019-b',text:'Wish they were more emotionally present',subtext:"I understand — but it still hurts a little."},{id:'q019-c',text:"Feel abandoned even if it's irrational",subtext:"Their absence feels bigger than it probably is."},{id:'q019-d',text:'Pull away emotionally for the rest of the day',subtext:"If they're unavailable, I stop expecting anything."}]},
+  {id:'q-020',number:20,signal:'Conflict Recovery',scenario:"An argument ends with both of you apologizing — but the mood still feels off.",context:"The issue is technically resolved, but emotionally it lingers.",options:[{id:'q020-a',text:'Reconnect naturally and move forward',subtext:"Not every disagreement needs to linger forever."},{id:'q020-b',text:'Need extra reassurance afterward',subtext:"I want to feel emotionally close again before relaxing."},{id:'q020-c',text:'Replay the argument repeatedly in your mind',subtext:"I keep wondering what the conflict really meant."},{id:'q020-d',text:'Stay emotionally guarded for a while',subtext:"It takes time for me to fully soften again."}]},
+  {id:'q-021',number:21,signal:'Need for Validation',scenario:"You post a photo you love and your partner barely reacts to it.",context:"Other people noticed it immediately.",options:[{id:'q021-a',text:'Not think much of it',subtext:"Social media reactions don't define our relationship."},{id:'q021-b',text:'Quietly wish they were more expressive',subtext:"A little enthusiasm would have meant a lot."},{id:'q021-c',text:'Wonder if they\'re losing interest',subtext:"My mind immediately starts connecting dots."},{id:'q021-d',text:'Avoid bringing it up but feel hurt',subtext:"It feels small and silly — but still personal."}]},
+  {id:'q-022',number:22,signal:'Intimacy Pace',scenario:"Someone you're dating wants to meet your family much sooner than expected.",context:"Things are going well, but it feels fast.",options:[{id:'q022-a',text:'Feel excited and ready',subtext:"If it feels right, I don't need arbitrary timelines."},{id:'q022-b',text:'Agree but feel nervous internally',subtext:"I want this — I just need time to adjust emotionally."},{id:'q022-c',text:'Ask to slow things down slightly',subtext:"I care about this enough to move thoughtfully."},{id:'q022-d',text:'Feel overwhelmed and instinctively retreat',subtext:"Too much closeness too quickly makes me panic."}]},
+  {id:'q-023',number:23,signal:'Expression of Affection',scenario:"Your partner surprises you with an incredibly thoughtful gesture.",context:"It's obvious they paid attention to something small you once mentioned.",options:[{id:'q023-a',text:'Express gratitude openly and emotionally',subtext:"Moments like this make me feel deeply seen."},{id:'q023-b',text:'Feel touched but slightly awkward',subtext:"I love it — I'm just not great at receiving affection."},{id:'q023-c',text:'Immediately want to reciprocate equally',subtext:"I feel pressure to give back the same energy."},{id:'q023-d',text:'Downplay how much it affected you',subtext:"Being emotionally exposed feels vulnerable."}]},
+  {id:'q-024',number:24,signal:'Emotional Honesty',scenario:"Your partner asks if something has been bothering you lately.",context:"You've actually been carrying a lot internally.",options:[{id:'q024-a',text:"Open up honestly about what's going on",subtext:"I want emotional transparency between us."},{id:'q024-b',text:'Share only part of the truth',subtext:"I'm not ready to unpack everything yet."},{id:'q024-c',text:"Say you're fine even though you're not",subtext:"I don't want to burden them with my emotions."},{id:'q024-d',text:'Deflect and change the subject',subtext:"Talking about emotions feels uncomfortable right now."}]},
+  {id:'q-025',number:25,signal:'Attachment Security',scenario:"Your partner goes on a trip with friends and barely checks their phone.",context:"You won't properly talk for a few days.",options:[{id:'q025-a',text:'Enjoy your own time and reconnect later',subtext:"Distance doesn't automatically create insecurity for me."},{id:'q025-b',text:'Miss them but stay emotionally steady',subtext:"I feel the absence, but not panic."},{id:'q025-c',text:'Need more communication to feel okay',subtext:"Silence starts affecting my emotional state quickly."},{id:'q025-d',text:'Assume something feels different between you',subtext:"My brain starts preparing for rejection."}]},
+  {id:'q-026',number:26,signal:'Response to Criticism',scenario:"Your partner gives you honest feedback about something you do that bothers them.",context:"They say it kindly, but it still stings.",options:[{id:'q026-a',text:'Listen openly and try to understand',subtext:"Feedback doesn't automatically mean rejection."},{id:'q026-b',text:'Feel hurt but appreciate the honesty',subtext:"It's uncomfortable, but important."},{id:'q026-c',text:'Get defensive before reflecting later',subtext:"My first instinct is usually self-protection."},{id:'q026-d',text:'Shut down emotionally after hearing it',subtext:"Criticism tends to hit deeper than people realize."}]},
+  {id:'q-027',number:27,signal:'Romantic Consistency',scenario:"The honeymoon phase fades and the relationship feels calmer and more routine.",context:"Nothing is wrong — it just feels less intense now.",options:[{id:'q027-a',text:'Feel comforted by the stability',subtext:"Consistency can be its own form of intimacy."},{id:'q027-b',text:'Miss the intensity but still feel connected',subtext:"I notice the shift, but it doesn't scare me."},{id:'q027-c',text:'Worry the spark is disappearing',subtext:"I start questioning what the change means."},{id:'q027-d',text:'Feel restless and emotionally detached',subtext:"Calmness sometimes feels too much like boredom."}]},
+  {id:'q-028',number:28,signal:'Trust in Communication',scenario:"Your partner says they need a night alone to recharge.",context:"They reassure you it's not about the relationship.",options:[{id:'q028-a',text:'Completely respect and understand it',subtext:"Healthy people need personal space sometimes."},{id:'q028-b',text:'Understand it logically but still feel unsure',subtext:"Part of me wonders if something else is going on."},{id:'q028-c',text:'Take it personally at first',subtext:"Distance can feel emotionally loaded to me."},{id:'q028-d',text:'Withdraw before they can withdraw further',subtext:"I instinctively protect myself from rejection."}]},
+  {id:'q-029',number:29,signal:'Relationship Priorities',scenario:"Your career suddenly becomes demanding during an important phase of your relationship.",context:"You care deeply about both.",options:[{id:'q029-a',text:'Communicate openly and try balancing both',subtext:"Healthy relationships adapt through changing seasons."},{id:'q029-b',text:'Prioritize the relationship emotionally',subtext:"Connection matters more to me than achievement."},{id:'q029-c',text:'Throw yourself into work and emotionally disconnect',subtext:"Stress makes me withdraw from intimacy."},{id:'q029-d',text:'Feel torn and guilty no matter what you choose',subtext:"It feels impossible to fully satisfy both worlds."}]},
+  {id:'q-030',number:30,signal:'Long-Term Emotional Readiness',scenario:"Your partner starts talking seriously about building a future together.",context:"This is the kind of conversation that changes things permanently.",options:[{id:'q030-a',text:'Feel excited and emotionally grounded',subtext:"Commitment feels meaningful rather than scary."},{id:'q030-b',text:'Feel hopeful but cautious',subtext:"I want this — I just need emotional certainty too."},{id:'q030-c',text:'Become anxious about expectations',subtext:"Big emotional commitments make me overthink everything."},{id:'q030-d',text:'Feel the urge to create emotional distance',subtext:"Part of me wants closeness while another part wants escape."}]}
+];
+
+let current=0, answers={}, showResult=false;
+
+function scoreAnswers(){
+  const scores={secure:0,anxious:0,avoidant:0,disorganized:0};
+  const sec={expressiveness:0,independence:0,intensity:0};
+  Object.entries(answers).forEach(([qId,optId])=>{
+    const m=SCORE_MAP[qId]&&SCORE_MAP[qId][optId];
+    if(!m)return;
+    scores[m.primary]+=m.weight;
+    if(m.sec){Object.entries(m.sec).forEach(([k,v])=>{sec[k]+=v;});}
+  });
+  return{scores,sec};
+}
+
+function classifySec(scores,sec){
+  const total=Object.values(scores).reduce((a,b)=>a+b,0)||1;
+  const pct={};
+  Object.entries(scores).forEach(([k,v])=>{pct[k]=v/total;});
+  const dom=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  const expLevel=sec.expressiveness>8?'high':sec.expressiveness>2?'mid':'low';
+  const indLevel=sec.independence>8?'high':sec.independence>2?'mid':'low';
+  const intLevel=sec.intensity>8?'high':sec.intensity>2?'mid':'low';
+  return{dom,pct,expLevel,indLevel,intLevel,sec};
+}
+
+function matchPersona(dom,expLevel,indLevel,intLevel){
+  const pool=PERSONAS.filter(p=>p.attachmentStyle.toLowerCase()===dom);
+  if(!pool.length)return PERSONAS[0];
+  let best=null,bestScore=999;
+  pool.forEach(p=>{
+    const eScore=p.profile.expressiveness===expLevel?0:1;
+    const iScore=p.profile.independence===indLevel?0:1;
+    const nScore=p.profile.intensity===intLevel?0:1;
+    const total=eScore+iScore+nScore;
+    if(total<bestScore){bestScore=total;best=p;}
+  });
+  return best||pool[0];
+}
+
+function renderQuestion(){
+  const q=QUESTIONS[current];
+  const area=document.getElementById('question-area');
+  const sel=answers[q.id]||null;
+  area.innerHTML=`
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="q-num">Q${q.number}</span>
+        <span class="q-signal">${q.signal}</span>
+      </div>
+      <div class="q-scenario">${q.scenario}</div>
+      <div class="q-context">${q.context}</div>
+      <div class="options">
+        ${q.options.map(o=>`
+          <button class="option-btn${sel===o.id?' selected':''}" onclick="selectOption('${q.id}','${o.id}')">
+            <span class="opt-text">${o.text}</span>
+            <span class="opt-sub">${o.subtext}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>`;
+  const pct=Math.round((current+1)/QUESTIONS.length*100);
+  document.getElementById('progress').style.width=pct+'%';
+  document.getElementById('counter').textContent=`${current+1} / ${QUESTIONS.length}`;
+  document.getElementById('btn-prev').disabled=current===0;
+  const nextBtn=document.getElementById('btn-next');
+  if(current===QUESTIONS.length-1){
+    nextBtn.textContent='See my result →';
+    nextBtn.onclick=()=>finishQuiz();
+  }else{
+    nextBtn.textContent='Next →';
+    nextBtn.onclick=()=>navigate(1);
+  }
+  nextBtn.disabled=!sel;
+}
+
+function selectOption(qId,optId){
+  answers[qId]=optId;
+  renderQuestion();
+}
+
+function navigate(dir){
+  const newIdx=current+dir;
+  if(newIdx<0||newIdx>=QUESTIONS.length)return;
+  current=newIdx;
+  renderQuestion();
+}
+
+function finishQuiz(){
+  const {scores,sec}=scoreAnswers();
+  const {dom,pct,expLevel,indLevel,intLevel}=classifySec(scores,sec);
+  const persona=matchPersona(dom,expLevel,indLevel,intLevel);
+  showResultScreen(persona,scores,sec,pct);
+}
+
+function showResultScreen(persona,scores,sec,pct){
+  const total=Object.values(scores).reduce((a,b)=>a+b,0)||1;
+  const styleColors={secure:'#1D9E75',anxious:'#D85A30',avoidant:'#378ADD',disorganized:'#7F77DD'};
+  const app=document.getElementById('app');
+  const expVal=sec.expressiveness;
+  const indVal=sec.independence;
+  const intVal=sec.intensity;
+  app.innerHTML=`
+    <div class="result-hero">
+      <span class="result-emoji">${persona.emoji}</span>
+      <div class="result-name">${persona.name}</div>
+      <div class="style-badge">${persona.attachmentStyle} · ${persona.archetype}</div>
+      <div class="result-tagline">${persona.tagline}</div>
+      <div class="result-desc">${persona.description}</div>
+    </div>
+    <div class="scores-grid">
+      ${['secure','anxious','avoidant','disorganized'].map(s=>{
+        const val=Math.round(scores[s]/total*100);
+        return`<div class="score-card">
+          <div class="score-label">${s.charAt(0).toUpperCase()+s.slice(1)}</div>
+          <div class="score-bar-wrap"><div class="score-bar" style="width:${val}%;background:${styleColors[s]}"></div></div>
+          <div class="score-val">${val}%</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="secondary-grid">
+      <div class="sec-card">
+        <div class="sec-label">Expressiveness</div>
+        <div class="sec-val">${expVal>8?'High':expVal>2?'Mid':'Low'} (${expVal>0?'+':''}${expVal})</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-label">Independence</div>
+        <div class="sec-val">${indVal>8?'High':indVal>2?'Mid':'Low'} (${indVal>0?'+':''}${indVal})</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-label">Intensity</div>
+        <div class="sec-val">${intVal>8?'High':intVal>2?'Mid':'Low'} (${intVal>0?'+':''}${intVal})</div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button class="restart-btn" onclick="restartQuiz()">Retake quiz</button>
+      <button class="share-btn" onclick="sendPrompt('I got ${persona.name} on the quiz — ${persona.tagline} Tell me more about what this means for how I love.')">Explore this result ↗</button>
+    </div>`;
+}
+
+function restartQuiz(){
+  current=0;answers={};
+  const app=document.getElementById('app');
+  app.innerHTML=`
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+    <div id="question-area"></div>
+    <div class="nav" id="nav-area">
+      <button class="nav-btn" id="btn-prev" onclick="navigate(-1)" disabled>← Back</button>
+      <span class="counter" id="counter">1 / 30</span>
+      <button class="nav-btn primary" id="btn-next" onclick="navigate(1)">Next →</button>
+    </div>`;
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
