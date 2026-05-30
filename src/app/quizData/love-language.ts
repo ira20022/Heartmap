@@ -8,6 +8,7 @@ const quiz: QuizMeta = {
   description: 'Words, touch, quality time, acts of service, or gifts — how you give and receive love.',
   tag: 'Self-awareness',
   color: 'text-rose-400',
+  noOfQuestion: 10,
   resultCategories: {
     words: {
       label: 'Words of Affirmation',

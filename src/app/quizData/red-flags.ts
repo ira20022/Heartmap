@@ -18,7 +18,7 @@ const redFlags: QuizMeta = {
     'The warning signs you overlook in others — and the ones you may unknowingly display.',
   tag: 'Patterns',
   color: 'text-violet-400',
-
+  noOfQuestion: 10,
   resultCategories: {
     overlooker: {
       label: 'The Overlooker',

@@ -19,6 +19,7 @@ const attractionBlueprint: QuizMeta = {
     "The personality types and energies you're consistently pulled toward in partners.",
   tag: 'Patterns',
   color: 'text-violet-400',
+  noOfQuestion: 10,
 
   resultCategories: {
     mysteryAttractor: {

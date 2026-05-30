@@ -59,8 +59,18 @@ const sections: { label: string; cards: QuizCard[] }[] = [
   {
     label: 'YOUR RELATIONSHIP PERSONA',
     cards: [
-      { id: 'who-are-you-in-love', title: 'Who are you in love?', description: 'Discover your relationship archetype — from The Steady Anchor to The Storm Chaser. A portrait of how you love, fear, and connect.', tag: 'Persona', tagColor: 'text-amber-400', href: '/quiz-screen', isNew: true, accent: 'from-amber-500/20 to-orange-500/10' },
-      { id: 'who-do-you-fall-for', title: 'Who do you fall for?', description: 'The emotional archetypes and relationship personas you tend to attract and be drawn to.', tag: 'Persona', tagColor: 'text-amber-400', href: '/quiz/who-do-you-fall-for', accent: 'from-orange-500/20 to-amber-400/10' },
+      { id: 'who-are-you-in-love', title: 'Who are you in love?', description: 'Discover your relationship archetype — from The Steady Anchor to The Storm Chaser. A portrait of how you love, fear, and connect.', tag: 'Persona', tagColor: 'text-violet-400', href: '/quiz/who-are-you-in-love-quiz', isNew: true, accent: 'from-amber-500/20 to-orange-500/10' },
+      { id: 'who-do-you-fall-for', title: 'Who do you fall for?', description: 'The emotional archetypes and relationship personas you tend to attract and be drawn to.', tag: 'Persona', tagColor: 'text-violet-400', href: '/quiz/who-do-you-fall-for', accent: 'from-orange-500/20 to-amber-400/10' },
+      {
+        id: 'how-you-fall-in-love',
+        title: 'How do you fall in love?',
+        description:
+          'Explore the path your heart takes — slowly and cautiously, intensely and fast, or through deep emotional connection. Uncover the patterns behind how attraction turns into love.',
+        tag: 'Persona',
+        tagColor: 'text-violet-400',
+        href: '/quiz/how-do-you-fall-in-love',
+        accent: 'from-rose-500/20 to-pink-500/10',
+      }
     ],
   },
   {
@@ -315,7 +325,7 @@ export default function HomePage() {
       {/* Quick Quiz CTA */}
       <div className="max-w-2xl mx-auto px-4 pb-6">
         <Link
-          href="/quiz-screen"
+          href="/quiz/who-are-you-in-love-quiz"
           className="group flex items-center justify-between w-full rounded-2xl p-5 border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/5 hover:border-amber-500/50 hover:from-amber-500/15 transition-all duration-300"
         >
           <div>

@@ -9,6 +9,7 @@ const quiz: QuizMeta = {
     'How you express needs, handle tension, respond during emotional moments, and navigate difficult conversations in relationships.',
   tag: 'Self-awareness',
   color: 'text-orange-400',
+  noOfQuestion: 10,
 
   resultCategories: {
     direct: {

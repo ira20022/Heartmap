@@ -8,6 +8,9 @@ import emotionalNeeds from './emotional-needs';
 import relationshipPatterns from './relationship-patterns'
 import redFlags from './red-flags';
 import attractionBlueprint from './attraction-blueprint';
+import whoAreYouInLove from './who-are-you-in-love-quiz'
+import whoDoYouFallFor from './who-do-you-fall-for'
+import howYouFallInLove from './how-do-you-fall-in-love';
 
 // Re-export types
 export type { QuizMeta, QuizQuestion, QuizOption } from './attachment-style';
@@ -22,7 +25,9 @@ export const quizRegistry: Record<string, QuizMeta> = {
   'relationship-patterns': relationshipPatterns,
   'red-flags': redFlags,
   'attraction-blueprint': attractionBlueprint,
-  // 'who-do-you-fall-for': whoDoYouFallFor,
+  'who-are-you-in-love-quiz': whoAreYouInLove,
+  'how-do-you-fall-in-love': howYouFallInLove,
+  'who-do-you-fall-for': whoDoYouFallFor
 };
 
 // ---------------------------------------------------------------------------
@@ -79,7 +84,6 @@ export interface SessionQuestion extends QuizQuestion {
  */
 export function buildSession(
   quiz: QuizMeta,
-  count = 10,
   seed?: number,
 ): SessionQuestion[] {
   const s = seed ?? Date.now();
@@ -89,7 +93,7 @@ export function buildSession(
   const shuffledQuestions = seededShuffle(quiz.questions, rand);
 
   // 2. Pick the first `count` (or all if fewer available)
-  const picked = shuffledQuestions.slice(0, Math.min(count, shuffledQuestions.length));
+  const picked = shuffledQuestions.slice(0, Math.min(quiz.noOfQuestion, shuffledQuestions.length));
 
   // 3. For each picked question, shuffle its options
   return picked.map((q) => ({
@@ -127,53 +131,7 @@ export interface QuizResult {
  * @param session  The SessionQuestion array from buildSession
  * @param answers  Map of sessionQuestionIndex → chosen optionIndex
  */
-// export function calculateResult(
-//   quiz: QuizMeta,
-//   session: SessionQuestion[],
-//   answers: AnswerMap,
-// ): QuizResult {
-//   // Initialise totals
-//   const totals: Record<string, number> = {};
-//   for (const key of Object.keys(quiz.resultCategories)) {
-//     totals[key] = 0;
-//   }
 
-//   // Sum weights for each answered question
-//   session.forEach((question, qIdx) => {
-//     const chosenOptionIdx = answers[qIdx];
-//     if (chosenOptionIdx === undefined) return;
-//     const option = question.options[chosenOptionIdx];
-//     if (!option) return;
-//     for (const [cat, weight] of Object.entries(option.weights)) {
-//       if (cat in totals) totals[cat] += weight;
-//     }
-//   });
-
-//   // Max possible per category across the SESSION (not the full pool)
-//   const maxPossible: Record<string, number> = {};
-//   for (const key of Object.keys(quiz.resultCategories)) {
-//     maxPossible[key] = session.reduce((sum, q) => {
-//       const max = Math.max(...q.options.map((o) => o.weights[key] ?? 0));
-//       return sum + max;
-//     }, 0);
-//   }
-
-//   // Build sorted scores array
-//   const scores: CategoryScore[] = Object.entries(totals)
-//     .map(([key, score]) => ({
-//       key,
-//       label: quiz.resultCategories[key].label,
-//       emoji: quiz.resultCategories[key].emoji,
-//       score,
-//       percent: maxPossible[key] > 0 ? Math.round((score / maxPossible[key]) * 100) : 0,
-//     }))
-//     .sort((a, b) => b.score - a.score);
-
-//   return {
-//     winner: scores[0]?.key ?? '',
-//     scores,
-//   };
-// }
 
 export function calculateResult(
   quiz: QuizMeta,

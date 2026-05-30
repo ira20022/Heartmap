@@ -9,6 +9,7 @@ const quiz: QuizMeta = {
   description: 'Security, validation, autonomy, or intimacy — what you need most to feel truly loved.',
   tag: 'Self-awareness',
   color: 'text-rose-400',
+  noOfQuestion: 10,
   resultCategories: {
     security: {
       label: 'Security',

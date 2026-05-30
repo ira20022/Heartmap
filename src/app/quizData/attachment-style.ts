@@ -19,6 +19,7 @@ export interface QuizMeta {
   description: string;
   tag: string;
   color: string;
+  noOfQuestion: number;
   resultCategories: Record<
     string,
     {
@@ -37,7 +38,7 @@ const quiz: QuizMeta = {
     'Discover how you emotionally connect, trust, react to closeness, and experience love.',
   tag: 'Self-awareness',
   color: 'text-rose-400',
-
+  noOfQuestion: 10,
   resultCategories: {
     secure: {
       label: 'Secure',

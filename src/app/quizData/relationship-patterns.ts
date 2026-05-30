@@ -15,7 +15,7 @@ const relationshipPatterns: QuizMeta = {
     'Chasing, withdrawing, people-pleasing — behaviours you repeat without realising it.',
   tag: 'Patterns',
   color: 'text-violet-400',
-
+  noOfQuestion: 10,
   resultCategories: {
     chaser: {
       label: 'The Chaser',

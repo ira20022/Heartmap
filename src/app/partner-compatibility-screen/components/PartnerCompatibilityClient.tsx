@@ -82,7 +82,7 @@ export default function PartnerCompatibilityClient() {
       {/* Header */}
       <header className="px-5 py-4 flex items-center justify-between sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border/50">
         <button
-          onClick={() => router.push('/persona-results-screen')}
+          onClick={() => router.push('/home')}
           className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Go back"
         >
@@ -183,13 +183,12 @@ export default function PartnerCompatibilityClient() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">What you'll discover</p>
                 <div className="flex flex-col gap-2.5">
                   {[
-                    { emoji: '📊', text: 'Overall compatibility score with dimension breakdown' },
-                    { emoji: '💪', text: 'Relationship strengths unique to this pairing' },
-                    { emoji: '⚡', text: 'Growth challenges to navigate together' },
-                    { emoji: '🧭', text: 'Personalised guidance for each persona' },
-                  ].map(({ emoji, text }) => (
+                    { text: 'Overall compatibility score with dimension breakdown' },
+                    {  text: 'Relationship strengths unique to this pairing' },
+                    {  text: 'Growth challenges to navigate together' },
+                    {  text: 'Personalised guidance for each persona' },
+                  ].map(({  text }) => (
                     <div key={text} className="flex items-start gap-3">
-                      <span className="text-base shrink-0">{emoji}</span>
                       <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
                     </div>
                   ))}
